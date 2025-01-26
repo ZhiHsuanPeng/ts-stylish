@@ -1,12 +1,18 @@
 // import mysql from 'mysql2/promise'
 import { Sequelize, DataTypes, Model } from 'sequelize'
 
-import { ProductSchema } from './interfaces/product.schema.js'
+import {
+    ProductSchema,
+    ProductVariantSchema,
+} from './interfaces/product.schema.js'
 
 export class SequelizeManager {
     static sequelizeInstance: Sequelize
     static productInstance: typeof Model & {
         new (): Model<ProductSchema, ProductSchema>
+    }
+    static productVariantInstance: typeof Model & {
+        new (): Model<ProductVariantSchema, ProductVariantSchema>
     }
     constructor() {}
 
@@ -85,8 +91,62 @@ export class SequelizeManager {
         }
     }
 
+    static initProductVariantModel() {
+        const sequelize = this.sequelizeInstance
+        class ProductVariantInstance
+            extends Model<ProductVariantSchema, ProductVariantSchema>
+            implements ProductVariantSchema
+        {
+            public color_code!: string
+            public size!: string
+            public stock!: number
+            public product_id!: number
+        }
+
+        ProductVariantInstance.init(
+            {
+                color_code: {
+                    type: DataTypes.STRING,
+                    allowNull: false,
+                },
+                size: {
+                    type: DataTypes.STRING,
+                    allowNull: false,
+                },
+                stock: {
+                    type: DataTypes.INTEGER,
+                    allowNull: false,
+                },
+                product_id: {
+                    type: DataTypes.INTEGER,
+                    allowNull: false,
+                },
+            },
+            {
+                sequelize,
+                tableName: 'variants',
+                timestamps: true,
+                underscored: true,
+            }
+        )
+
+        this.productVariantInstance = ProductVariantInstance as typeof Model & {
+            new (): Model<ProductVariantSchema, ProductVariantSchema>
+        }
+    }
+
+    static establishRelationship() {
+        this.getProductInstance().hasMany(this.getProductVariantInstance(), {
+            foreignKey: 'product_id',
+        })
+    }
+
     static getProductInstance() {
         return this.productInstance
+    }
+
+    static getProductVariantInstance() {
+        return this.productVariantInstance
     }
 
     static getSequelizeInstance() {

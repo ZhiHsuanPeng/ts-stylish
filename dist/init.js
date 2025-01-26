@@ -3,6 +3,7 @@ import { Sequelize, DataTypes, Model } from 'sequelize';
 export class SequelizeManager {
     static sequelizeInstance;
     static productInstance;
+    static productVariantInstance;
     constructor() { }
     static async initSequelize() {
         try {
@@ -66,8 +67,49 @@ export class SequelizeManager {
         });
         this.productInstance = ProductInstance;
     }
+    static initProductVariantModel() {
+        const sequelize = this.sequelizeInstance;
+        class ProductVariantInstance extends Model {
+            color_code;
+            size;
+            stock;
+            product_id;
+        }
+        ProductVariantInstance.init({
+            color_code: {
+                type: DataTypes.STRING,
+                allowNull: false,
+            },
+            size: {
+                type: DataTypes.STRING,
+                allowNull: false,
+            },
+            stock: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+            },
+            product_id: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+            },
+        }, {
+            sequelize,
+            tableName: 'variants',
+            timestamps: true,
+            underscored: true,
+        });
+        this.productVariantInstance = ProductVariantInstance;
+    }
+    static establishRelationship() {
+        this.getProductInstance().hasMany(this.getProductVariantInstance(), {
+            foreignKey: 'product_id',
+        });
+    }
     static getProductInstance() {
         return this.productInstance;
+    }
+    static getProductVariantInstance() {
+        return this.productVariantInstance;
     }
     static getSequelizeInstance() {
         return this.sequelizeInstance;

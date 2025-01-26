@@ -6,6 +6,7 @@ export interface Product extends ProductSchema {
 }
 
 export interface ProductSchema {
+    id?: number
     category: string
     title: string
     description: string
@@ -13,6 +14,10 @@ export interface ProductSchema {
     texture: string
     wash: string
     place: string
+}
+
+export interface ProductVariantSchema extends Product_variant {
+    product_id: number
 }
 
 export interface Product_variant {

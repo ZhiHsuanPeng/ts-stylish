@@ -11,6 +11,8 @@ const app = express()
     try {
         await SequelizeManager.initSequelize()
         SequelizeManager.initProductModel()
+        SequelizeManager.initProductVariantModel()
+        SequelizeManager.establishRelationship()
 
         const sequelize = SequelizeManager.getSequelizeInstance()
         await sequelize.sync({ alter: true })
