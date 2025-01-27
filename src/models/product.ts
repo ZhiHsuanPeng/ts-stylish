@@ -26,9 +26,9 @@ export const addOneProduct = async (body: Product) => {
         )
 
         await Promise.all(
-            variants.map(async (v) => {
+            variants.map((v) => {
                 const { color_code, size, stock } = v
-                await productVariantInstance.create(
+                productVariantInstance.create(
                     {
                         color_code,
                         size,
@@ -43,9 +43,9 @@ export const addOneProduct = async (body: Product) => {
         )
 
         await Promise.all(
-            colors.map(async (c) => {
+            colors.map((c) => {
                 const { color, code } = c
-                await productColorInstance.create(
+                productColorInstance.create(
                     {
                         color,
                         code,

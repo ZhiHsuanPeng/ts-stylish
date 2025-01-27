@@ -17,9 +17,9 @@ export const addOneProduct = async (body) => {
         }, {
             transaction: t,
         });
-        await Promise.all(variants.map(async (v) => {
+        await Promise.all(variants.map((v) => {
             const { color_code, size, stock } = v;
-            await productVariantInstance.create({
+            productVariantInstance.create({
                 color_code,
                 size,
                 stock,
@@ -28,9 +28,9 @@ export const addOneProduct = async (body) => {
                 transaction: t,
             });
         }));
-        await Promise.all(colors.map(async (c) => {
+        await Promise.all(colors.map((c) => {
             const { color, code } = c;
-            await productColorInstance.create({
+            productColorInstance.create({
                 color,
                 code,
                 product_id: product.dataValues.id,
