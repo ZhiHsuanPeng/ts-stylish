@@ -26,6 +26,10 @@ export interface Product_variant {
     stock: number
 }
 
+export interface ProductColorSchema extends Product_color {
+    product_id: number
+}
+
 export interface Product_color {
     color: string
     code: string

@@ -12,6 +12,7 @@ const app = express()
         await SequelizeManager.initSequelize()
         SequelizeManager.initProductModel()
         SequelizeManager.initProductVariantModel()
+        SequelizeManager.initProductColorModel()
         SequelizeManager.establishRelationship()
 
         const sequelize = SequelizeManager.getSequelizeInstance()

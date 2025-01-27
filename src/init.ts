@@ -4,6 +4,7 @@ import { Sequelize, DataTypes, Model } from 'sequelize'
 import {
     ProductSchema,
     ProductVariantSchema,
+    ProductColorSchema,
 } from './interfaces/product.schema.js'
 
 export class SequelizeManager {
@@ -13,6 +14,10 @@ export class SequelizeManager {
     }
     static productVariantInstance: typeof Model & {
         new (): Model<ProductVariantSchema, ProductVariantSchema>
+    }
+
+    static productColorInstance: typeof Model & {
+        new (): Model<ProductColorSchema, ProductColorSchema>
     }
     constructor() {}
 
@@ -135,8 +140,51 @@ export class SequelizeManager {
         }
     }
 
+    static initProductColorModel() {
+        const sequelize = this.sequelizeInstance
+        class ProductColorInstance
+            extends Model<ProductColorSchema, ProductColorSchema>
+            implements ProductColorSchema
+        {
+            public color!: string
+            public code!: string
+            public product_id!: number
+        }
+
+        ProductColorInstance.init(
+            {
+                color: {
+                    type: DataTypes.STRING,
+                    allowNull: false,
+                },
+                code: {
+                    type: DataTypes.STRING,
+                    allowNull: false,
+                },
+                product_id: {
+                    type: DataTypes.INTEGER,
+                    allowNull: false,
+                },
+            },
+            {
+                sequelize,
+                tableName: 'colors',
+                timestamps: true,
+                underscored: true,
+            }
+        )
+
+        this.productColorInstance = ProductColorInstance as typeof Model & {
+            new (): Model<ProductColorSchema, ProductColorSchema>
+        }
+    }
+
     static establishRelationship() {
         this.getProductInstance().hasMany(this.getProductVariantInstance(), {
+            foreignKey: 'product_id',
+        })
+
+        this.getProductInstance().hasMany(this.getProductColorInstance(), {
             foreignKey: 'product_id',
         })
     }
@@ -147,6 +195,10 @@ export class SequelizeManager {
 
     static getProductVariantInstance() {
         return this.productVariantInstance
+    }
+
+    static getProductColorInstance() {
+        return this.productColorInstance
     }
 
     static getSequelizeInstance() {
