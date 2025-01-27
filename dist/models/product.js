@@ -2,8 +2,10 @@ import { SequelizeManager } from '../init.js';
 export const addOneProduct = async (body) => {
     const t = await SequelizeManager.getSequelizeInstance().transaction();
     try {
-        const { category, title, description, price, texture, wash, place, variants, colors, } = body;
+        const { category, title, description, price, texture, wash, place, variants, colors } = body;
         const ProductInstance = SequelizeManager.getProductInstance();
+        const productVariantInstance = SequelizeManager.getProductVariantInstance();
+        const productColorInstance = SequelizeManager.getProductColorInstance();
         const product = await ProductInstance.create({
             category,
             title,
@@ -15,7 +17,6 @@ export const addOneProduct = async (body) => {
         }, {
             transaction: t,
         });
-        const productVariantInstance = SequelizeManager.getProductVariantInstance();
         await Promise.all(variants.map(async (v) => {
             const { color_code, size, stock } = v;
             await productVariantInstance.create({
@@ -27,7 +28,6 @@ export const addOneProduct = async (body) => {
                 transaction: t,
             });
         }));
-        const productColorInstance = SequelizeManager.getProductColorInstance();
         await Promise.all(colors.map(async (c) => {
             const { color, code } = c;
             await productColorInstance.create({
