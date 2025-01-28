@@ -9,6 +9,7 @@ const app = express();
         SequelizeManager.initProductModel();
         SequelizeManager.initProductVariantModel();
         SequelizeManager.initProductColorModel();
+        SequelizeManager.initProductImageModel();
         SequelizeManager.establishRelationship();
         const sequelize = SequelizeManager.getSequelizeInstance();
         await sequelize.sync({ alter: true });

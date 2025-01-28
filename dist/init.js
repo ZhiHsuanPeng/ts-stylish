@@ -5,6 +5,7 @@ export class SequelizeManager {
     static productInstance;
     static productVariantInstance;
     static productColorInstance;
+    static productImageInstance;
     constructor() { }
     static async initSequelize() {
         try {
@@ -129,11 +130,37 @@ export class SequelizeManager {
         });
         this.productColorInstance = ProductColorInstance;
     }
+    static initProductImageModel() {
+        const sequelize = this.sequelizeInstance;
+        class ProductImageInstance extends Model {
+            image_url;
+            product_id;
+        }
+        ProductImageInstance.init({
+            image_url: {
+                type: DataTypes.STRING,
+                allowNull: false,
+            },
+            product_id: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+            },
+        }, {
+            sequelize,
+            tableName: 'images',
+            timestamps: true,
+            underscored: true,
+        });
+        this.productImageInstance = ProductImageInstance;
+    }
     static establishRelationship() {
         this.getProductInstance().hasMany(this.getProductVariantInstance(), {
             foreignKey: 'product_id',
         });
         this.getProductInstance().hasMany(this.getProductColorInstance(), {
+            foreignKey: 'product_id',
+        });
+        this.getProductInstance().hasMany(this.getProductImageInstance(), {
             foreignKey: 'product_id',
         });
     }
@@ -145,6 +172,9 @@ export class SequelizeManager {
     }
     static getProductColorInstance() {
         return this.productColorInstance;
+    }
+    static getProductImageInstance() {
+        return this.productImageInstance;
     }
     static getSequelizeInstance() {
         return this.sequelizeInstance;

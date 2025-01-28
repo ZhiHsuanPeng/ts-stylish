@@ -5,6 +5,7 @@ import {
     ProductSchema,
     ProductVariantSchema,
     ProductColorSchema,
+    ProductImageSchema,
 } from './interfaces/product.schema.js'
 
 export class SequelizeManager {
@@ -18,6 +19,10 @@ export class SequelizeManager {
 
     static productColorInstance: typeof Model & {
         new (): Model<ProductColorSchema, ProductColorSchema>
+    }
+
+    static productImageInstance: typeof Model & {
+        new (): Model<ProductImageSchema, ProductImageSchema>
     }
     constructor() {}
 
@@ -39,10 +44,7 @@ export class SequelizeManager {
 
     static initProductModel() {
         const sequelize = this.sequelizeInstance
-        class ProductInstance
-            extends Model<ProductSchema, ProductSchema>
-            implements ProductSchema
-        {
+        class ProductInstance extends Model<ProductSchema, ProductSchema> implements ProductSchema {
             public category!: string
             public title!: string
             public description!: string
@@ -142,10 +144,7 @@ export class SequelizeManager {
 
     static initProductColorModel() {
         const sequelize = this.sequelizeInstance
-        class ProductColorInstance
-            extends Model<ProductColorSchema, ProductColorSchema>
-            implements ProductColorSchema
-        {
+        class ProductColorInstance extends Model<ProductColorSchema, ProductColorSchema> implements ProductColorSchema {
             public color!: string
             public code!: string
             public product_id!: number
@@ -179,12 +178,47 @@ export class SequelizeManager {
         }
     }
 
+    static initProductImageModel() {
+        const sequelize = this.sequelizeInstance
+        class ProductImageInstance extends Model<ProductImageSchema, ProductImageSchema> implements ProductImageSchema {
+            public image_url!: string
+            public product_id!: number
+        }
+
+        ProductImageInstance.init(
+            {
+                image_url: {
+                    type: DataTypes.STRING,
+                    allowNull: false,
+                },
+                product_id: {
+                    type: DataTypes.INTEGER,
+                    allowNull: false,
+                },
+            },
+            {
+                sequelize,
+                tableName: 'images',
+                timestamps: true,
+                underscored: true,
+            }
+        )
+
+        this.productImageInstance = ProductImageInstance as typeof Model & {
+            new (): Model<ProductImageSchema, ProductImageSchema>
+        }
+    }
+
     static establishRelationship() {
         this.getProductInstance().hasMany(this.getProductVariantInstance(), {
             foreignKey: 'product_id',
         })
 
         this.getProductInstance().hasMany(this.getProductColorInstance(), {
+            foreignKey: 'product_id',
+        })
+
+        this.getProductInstance().hasMany(this.getProductImageInstance(), {
             foreignKey: 'product_id',
         })
     }
@@ -199,6 +233,10 @@ export class SequelizeManager {
 
     static getProductColorInstance() {
         return this.productColorInstance
+    }
+
+    static getProductImageInstance() {
+        return this.productImageInstance
     }
 
     static getSequelizeInstance() {

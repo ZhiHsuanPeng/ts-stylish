@@ -34,3 +34,8 @@ export interface Product_color {
     color: string
     code: string
 }
+
+export interface ProductImageSchema {
+    product_id: number
+    image_url: string
+}

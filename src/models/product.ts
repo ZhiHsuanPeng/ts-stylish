@@ -4,11 +4,12 @@ import { SequelizeManager } from '../init.js'
 export const addOneProduct = async (body: Product) => {
     const t = await SequelizeManager.getSequelizeInstance().transaction()
     try {
-        const { category, title, description, price, texture, wash, place, variants, colors } = body
+        const { category, title, description, price, texture, wash, place, variants, colors, images } = body
 
         const ProductInstance = SequelizeManager.getProductInstance()
         const productVariantInstance = SequelizeManager.getProductVariantInstance()
         const productColorInstance = SequelizeManager.getProductColorInstance()
+        const productImageInstance = SequelizeManager.getProductImageInstance()
 
         const product = await ProductInstance.create(
             {
@@ -28,7 +29,7 @@ export const addOneProduct = async (body: Product) => {
         await Promise.all(
             variants.map((v) => {
                 const { color_code, size, stock } = v
-                productVariantInstance.create(
+                return productVariantInstance.create(
                     {
                         color_code,
                         size,
@@ -45,7 +46,7 @@ export const addOneProduct = async (body: Product) => {
         await Promise.all(
             colors.map((c) => {
                 const { color, code } = c
-                productColorInstance.create(
+                return productColorInstance.create(
                     {
                         color,
                         code,
@@ -57,6 +58,21 @@ export const addOneProduct = async (body: Product) => {
                 )
             })
         )
+
+        await Promise.all(
+            images.map((i) => {
+                return productImageInstance.create(
+                    {
+                        image_url: i,
+                        product_id: product.dataValues.id as number,
+                    },
+                    {
+                        transaction: t,
+                    }
+                )
+            })
+        )
+
         await t.commit()
     } catch (err) {
         await t.rollback()
