@@ -41,7 +41,7 @@ export const addOneProduct = async (body, transactionWithMultipleProducts) => {
         }));
         await Promise.all(images.map((i) => {
             return productImageInstance.create({
-                image_url: i,
+                image_url: i.image_url,
                 product_id: product.dataValues.id,
             }, {
                 transaction: t,
@@ -56,7 +56,7 @@ export const addOneProduct = async (body, transactionWithMultipleProducts) => {
         throw Error('An error happened when adding product.');
     }
 };
-export const addPrducts = async (body) => {
+export const addProducts = async (body) => {
     const t = await SequelizeManager.getSequelizeInstance().transaction();
     try {
         for (const product of body) {
@@ -67,5 +67,39 @@ export const addPrducts = async (body) => {
     catch (err) {
         await t.rollback();
         throw err;
+    }
+};
+export const getAllProducts = async () => {
+    try {
+        const ProductInstance = SequelizeManager.getProductInstance();
+        const variants = SequelizeManager.getProductVariantInstance();
+        const colors = SequelizeManager.getProductColorInstance();
+        const images = SequelizeManager.getProductImageInstance();
+        const products = await ProductInstance.findAll({
+            attributes: ['id', 'category', 'title', 'description', 'price', 'texture', 'wash', 'place'],
+            include: [
+                {
+                    model: variants,
+                    as: 'variants',
+                    attributes: ['color_code', 'size', 'stock'],
+                },
+                {
+                    model: colors,
+                    as: 'colors',
+                    attributes: ['color', 'code'],
+                },
+                {
+                    model: images,
+                    as: 'images',
+                    attributes: ['image_url'],
+                },
+            ],
+        });
+        return products;
+    }
+    catch (err) {
+        if (err instanceof Error) {
+            throw err;
+        }
     }
 };

@@ -22,6 +22,7 @@ const app = express();
 app.use(express.json({ limit: '10kb' }));
 app.use('/api/v1', routers);
 app.use((err, req, res, next) => {
+    console.log(err);
     if (err instanceof Joi.ValidationError) {
         res.status(400).json({
             message: err.message,

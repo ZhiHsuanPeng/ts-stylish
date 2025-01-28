@@ -156,13 +156,17 @@ export class SequelizeManager {
     static establishRelationship() {
         this.getProductInstance().hasMany(this.getProductVariantInstance(), {
             foreignKey: 'product_id',
+            as: 'variants',
         });
         this.getProductInstance().hasMany(this.getProductColorInstance(), {
             foreignKey: 'product_id',
+            as: 'colors',
         });
         this.getProductInstance().hasMany(this.getProductImageInstance(), {
             foreignKey: 'product_id',
+            as: 'images',
         });
+        this.getProductImageInstance().belongsTo(this.getProductInstance(), { foreignKey: 'product_id' });
     }
     static getProductInstance() {
         return this.productInstance;

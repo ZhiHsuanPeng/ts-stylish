@@ -2,7 +2,7 @@ export interface Product extends ProductSchema {
     variants: Product_variant[]
     colors: Product_color[]
     sizes: string[]
-    images: string[]
+    images: { image_url: string }[]
 }
 
 export interface ProductSchema {
