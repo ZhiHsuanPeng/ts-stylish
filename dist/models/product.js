@@ -1,6 +1,6 @@
 import { SequelizeManager } from '../init.js';
-export const addOneProduct = async (body) => {
-    const t = await SequelizeManager.getSequelizeInstance().transaction();
+export const addOneProduct = async (body, transactionWithMultipleProducts) => {
+    const t = transactionWithMultipleProducts || (await SequelizeManager.getSequelizeInstance().transaction());
     try {
         const { category, title, description, price, texture, wash, place, variants, colors, images } = body;
         const ProductInstance = SequelizeManager.getProductInstance();
@@ -47,7 +47,9 @@ export const addOneProduct = async (body) => {
                 transaction: t,
             });
         }));
-        await t.commit();
+        if (!transactionWithMultipleProducts) {
+            await t.commit();
+        }
     }
     catch (err) {
         await t.rollback();
@@ -55,5 +57,15 @@ export const addOneProduct = async (body) => {
     }
 };
 export const addPrducts = async (body) => {
-    const ProductInstance = SequelizeManager.getProductInstance();
+    const t = await SequelizeManager.getSequelizeInstance().transaction();
+    try {
+        for (const product of body) {
+            await addOneProduct(product, t);
+        }
+        await t.commit();
+    }
+    catch (err) {
+        await t.rollback();
+        throw err;
+    }
 };

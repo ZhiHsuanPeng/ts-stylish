@@ -1,8 +1,9 @@
-import { Product, Product_variant } from '../interfaces/product.schema.js'
+import { Product } from '../interfaces/product.schema.js'
 import { SequelizeManager } from '../init.js'
+import { Transaction } from 'sequelize'
 
-export const addOneProduct = async (body: Product) => {
-    const t = await SequelizeManager.getSequelizeInstance().transaction()
+export const addOneProduct = async (body: Product, transactionWithMultipleProducts?: Transaction) => {
+    const t = transactionWithMultipleProducts || (await SequelizeManager.getSequelizeInstance().transaction())
     try {
         const { category, title, description, price, texture, wash, place, variants, colors, images } = body
 
@@ -72,14 +73,24 @@ export const addOneProduct = async (body: Product) => {
                 )
             })
         )
-
-        await t.commit()
+        if (!transactionWithMultipleProducts) {
+            await t.commit()
+        }
     } catch (err) {
         await t.rollback()
         throw Error('An error happened when adding product.')
     }
 }
 
-export const addPrducts = async (body: Product) => {
-    const ProductInstance = SequelizeManager.getProductInstance()
+export const addPrducts = async (body: Product[]) => {
+    const t = await SequelizeManager.getSequelizeInstance().transaction()
+    try {
+        for (const product of body) {
+            await addOneProduct(product, t)
+        }
+        await t.commit()
+    } catch (err) {
+        await t.rollback()
+        throw err
+    }
 }
