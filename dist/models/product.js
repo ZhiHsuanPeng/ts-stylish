@@ -41,7 +41,7 @@ export const addOneProduct = async (body, transactionWithMultipleProducts) => {
         }));
         await Promise.all(images.map((i) => {
             return productImageInstance.create({
-                image_url: i.image_url,
+                image_url: i,
                 product_id: product.dataValues.id,
             }, {
                 transaction: t,
@@ -95,7 +95,21 @@ export const getAllProducts = async () => {
                 },
             ],
         });
-        return products;
+        // internally, sequilize will transform to JSON structure, if you only want array which
+        // contain only value, then you would have to type casting to get rid of the type error
+        const transformProduct = products.map((p) => {
+            return {
+                ...p.toJSON(),
+            };
+            // this avoids type conflict
+            // replace the old images property and replace it with new images property
+        });
+        return transformProduct.map((product) => {
+            return {
+                ...product,
+                images: product.images.map((i) => i.image_url),
+            };
+        });
     }
     catch (err) {
         if (err instanceof Error) {
