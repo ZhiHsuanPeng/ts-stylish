@@ -17,4 +17,7 @@ export const addProducts: RequestHandler = catchAsync(async (req: Request, res: 
     res.status(200).json({ message: 'Products added successfully.' })
 })
 
-export const changeProducts: RequestHandler = catchAsync((req: Request, res: Response, next: NextFunction) => {})
+export const modifyProducts: RequestHandler = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const result = await productModel.modifyOneProduct(req.body)
+    res.status(400).send(result)
+})

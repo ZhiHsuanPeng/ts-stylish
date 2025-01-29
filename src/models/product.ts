@@ -1,17 +1,16 @@
-import { ProductSchema, Product } from '../interfaces/product.schema.js'
+import { Product } from '../interfaces/product.schema.js'
 import { SequelizeManager } from '../init.js'
-import { Transaction, Model } from 'sequelize'
+import { Transaction } from 'sequelize'
+import _ from 'lodash'
 
 export const addOneProduct = async (body: Product, transactionWithMultipleProducts?: Transaction) => {
     const t = transactionWithMultipleProducts || (await SequelizeManager.getSequelizeInstance().transaction())
     try {
         const { category, title, description, price, texture, wash, place, variants, colors, images } = body
-
         const ProductInstance = SequelizeManager.getProductInstance()
         const productVariantInstance = SequelizeManager.getProductVariantInstance()
         const productColorInstance = SequelizeManager.getProductColorInstance()
         const productImageInstance = SequelizeManager.getProductImageInstance()
-
         const product = await ProductInstance.create(
             {
                 category,
@@ -98,38 +97,40 @@ export const addProducts = async (body: Product[]) => {
 export const getAllProducts = async () => {
     try {
         const ProductInstance = SequelizeManager.getProductInstance()
-        const variants = SequelizeManager.getProductVariantInstance()
-        const colors = SequelizeManager.getProductColorInstance()
-        const images = SequelizeManager.getProductImageInstance()
+        const productVariantInstance = SequelizeManager.getProductVariantInstance()
+        const productColorInstance = SequelizeManager.getProductColorInstance()
+        const productImageInstance = SequelizeManager.getProductImageInstance()
         const products = await ProductInstance.findAll({
             attributes: ['id', 'category', 'title', 'description', 'price', 'texture', 'wash', 'place'],
             include: [
                 {
-                    model: variants,
+                    model: productVariantInstance,
                     as: 'variants',
                     attributes: ['color_code', 'size', 'stock'],
                 },
                 {
-                    model: colors,
+                    model: productColorInstance,
                     as: 'colors',
                     attributes: ['color', 'code'],
                 },
                 {
-                    model: images,
+                    model: productImageInstance,
                     as: 'images',
                     attributes: ['image_url'],
                 },
             ],
         })
 
-        // internally, sequilize will transform to JSON structure, if you only want array which
-        // contain only value, then you would have to type casting to get rid of the type error
+        // internally, sequilize will transform data to JSON structure, if you only want array which
+        // contain only primitive value, then you would have to type cast to get rid of the type error
+
+        // This step transform the product data ( originally is Sequelize Model ) to JSON format
         const transformProduct = products.map((p) => {
             return {
                 ...p.toJSON(),
             }
-            // this avoids type conflict
-            // replace the old images property and replace it with new images property
+            // this type casting avoids type conflict
+            // replace the old images property with new images property, which allow you to access image_url property
         }) as (Omit<Product, 'images'> & { images: { image_url: string }[] })[]
 
         return transformProduct.map((product) => {
@@ -143,4 +144,41 @@ export const getAllProducts = async () => {
             throw err
         }
     }
+}
+
+export const modifyOneProduct = async (body: Partial<Product> & { id: number }) => {
+    const { id, variants, colors, images, ...product } = body
+    const ProductInstance = SequelizeManager.getProductInstance()
+    const productVariantInstance = SequelizeManager.getProductVariantInstance()
+    const productColorInstance = SequelizeManager.getProductColorInstance()
+    const productImageInstance = SequelizeManager.getProductImageInstance()
+
+    if (variants) {
+        await productVariantInstance.destroy({ where: { product_id: id } })
+
+        const newVariants = variants.map((v) => ({ ...v, product_id: id }))
+        await productVariantInstance.bulkCreate(newVariants)
+    }
+
+    if (colors) {
+        await productColorInstance.destroy({ where: { product_id: id } })
+
+        const newColors = colors.map((c) => ({ ...c, product_id: id }))
+        await productColorInstance.bulkCreate(newColors)
+    }
+
+    if (images) {
+        await productImageInstance.destroy({ where: { product_id: id } })
+
+        const newImages = images.map((i) => ({ image_url: i, product_id: id }))
+        await productImageInstance.bulkCreate(newImages)
+    }
+
+    const result = await ProductInstance.update(product, {
+        where: {
+            id,
+        },
+    })
+
+    return result
 }

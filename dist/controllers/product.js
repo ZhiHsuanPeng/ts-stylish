@@ -13,4 +13,7 @@ export const addProducts = catchAsync(async (req, res, next) => {
     }
     res.status(200).json({ message: 'Products added successfully.' });
 });
-export const changeProducts = catchAsync((req, res, next) => { });
+export const modifyProducts = catchAsync(async (req, res, next) => {
+    const result = await productModel.modifyOneProduct(req.body);
+    res.status(400).send(result);
+});
