@@ -69,7 +69,7 @@ export const addProducts = async (body) => {
         throw err;
     }
 };
-export const getAllProducts = async () => {
+export const getAllProducts = async (filterOption) => {
     try {
         const ProductInstance = SequelizeManager.getProductInstance();
         const productVariantInstance = SequelizeManager.getProductVariantInstance();
@@ -94,6 +94,9 @@ export const getAllProducts = async () => {
                     attributes: ['image_url'],
                 },
             ],
+            where: {
+                ...filterOption,
+            },
         });
         // internally, sequilize will transform data to JSON structure, if you only want array which
         // contain only primitive value, then you would have to type cast to get rid of the type error
@@ -104,6 +107,53 @@ export const getAllProducts = async () => {
             };
             // this type casting avoids type conflict
             // replace the old images property with new images property, which allow you to access image_url property
+        });
+        return transformProduct.map((product) => {
+            return {
+                ...product,
+                images: product.images.map((i) => i.image_url),
+            };
+        });
+    }
+    catch (err) {
+        if (err instanceof Error) {
+            throw err;
+        }
+    }
+};
+export const getProductById = async (id) => {
+    try {
+        const ProductInstance = SequelizeManager.getProductInstance();
+        const productVariantInstance = SequelizeManager.getProductVariantInstance();
+        const productColorInstance = SequelizeManager.getProductColorInstance();
+        const productImageInstance = SequelizeManager.getProductImageInstance();
+        const products = await ProductInstance.findAll({
+            attributes: ['id', 'category', 'title', 'description', 'price', 'texture', 'wash', 'place'],
+            include: [
+                {
+                    model: productVariantInstance,
+                    as: 'variants',
+                    attributes: ['color_code', 'size', 'stock'],
+                },
+                {
+                    model: productColorInstance,
+                    as: 'colors',
+                    attributes: ['color', 'code'],
+                },
+                {
+                    model: productImageInstance,
+                    as: 'images',
+                    attributes: ['image_url'],
+                },
+            ],
+            where: {
+                id,
+            },
+        });
+        const transformProduct = products.map((p) => {
+            return {
+                ...p.toJSON(),
+            };
         });
         return transformProduct.map((product) => {
             return {

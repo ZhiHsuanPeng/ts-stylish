@@ -36,6 +36,19 @@ const productOptionalSchema = Joi.object({
     sizes: Joi.array().items(Joi.string()).optional(),
     images: Joi.array().items(Joi.string()).optional(),
 }).unknown(false);
+const queryOptionalSchema = Joi.object({
+    category: Joi.string().optional(),
+    title: Joi.string().optional(),
+    description: Joi.string().optional(),
+    price: Joi.number().positive().optional(),
+    texture: Joi.string().optional(),
+    wash: Joi.string().optional(),
+    place: Joi.string().optional(),
+    variants: Joi.array().items(productVariantSchema).optional(),
+    colors: Joi.array().items(productColorSchema).optional(),
+    sizes: Joi.array().items(Joi.string()).optional(),
+    images: Joi.array().items(Joi.string()).optional(),
+}).unknown(false);
 export const validateProduct = catchAsync(async (req, res, next) => {
     if (Array.isArray(req.body)) {
         if (req.body.length > 5) {
@@ -66,5 +79,9 @@ export const validateProductOptional = catchAsync(async (req, res, next) => {
     else {
         await productOptionalSchema.validateAsync(req.body);
     }
+    next();
+});
+export const validateQueryString = catchAsync(async (req, res, next) => {
+    await queryOptionalSchema.validateAsync(req.query);
     next();
 });
